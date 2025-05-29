@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Switch, Route } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Navbar } from './components/navbar';
@@ -10,47 +10,25 @@ import { ContactPage } from './pages/contact';
 import { WarrantyPage } from './pages/warranty';
 import { ProductsPage } from './pages/products';
 import { ChatSupport } from './components/chat-support';
-import TelegramWebApps from '@twa-dev/sdk';
+import { LoadingScreen } from './components/loading-screen'; 
 
 const App: React.FC = () => {
-  useEffect(() => {
-    TelegramWebApps.ready();
-    const user = TelegramWebApps.initDataUnsafe.user;
-    if (user) {
-      console.log('User:', user.first_name, user.last_name);
-    }
+  // Initialize loading state
+  const [isLoading, setIsLoading] = useState(true);
 
-    // Mengatur tombol utama Telegram
-    TelegramWebApps.MainButton.setText('KIRIM DATA').show().onClick(() => {
-      // Kirim data ke backend
-      fetch('https://backend-drab-omega.vercel.app/api/webapp/data', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'submit',
-          initData: TelegramWebApps.initDataUnsafe,
-        }),
-      })
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-          }
-          return response.json();
-        })
-        .then((data) => {
-          console.log('Response from backend:', data);
-          // Opsional: Kirim data ke Telegram jika diperlukan
-          TelegramWebApps.sendData(JSON.stringify({ action: 'submit' }));
-          // Tampilkan notifikasi sukses
-          TelegramWebApps.showAlert('Data berhasil dikirim ke server!');
-        })
-        .catch((error) => {
-          console.error('Error sending data to backend:', error);
-          // Tampilkan notifikasi error
-          TelegramWebApps.showAlert('Gagal mengirim data. Silakan coba lagi.');
-        });
-    });
+  useEffect(() => {
+    // Simulate loading completion
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 2000); // Adjust duration as needed
+
+    return () => clearTimeout(timer);
   }, []);
+
+  // Show loading screen while isLoading is true
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
 
   return (
     <div className="relative min-h-screen">
