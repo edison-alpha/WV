@@ -13,10 +13,8 @@ import { ChatSupport } from './components/chat-support';
 import TelegramWebApps from '@twa-dev/sdk';
 
 const App: React.FC = () => {
-  // Inisialisasi Telegram Web App
   useEffect(() => {
     TelegramWebApps.ready();
-    // Contoh: Menampilkan nama pengguna Telegram
     const user = TelegramWebApps.initDataUnsafe.user;
     if (user) {
       console.log('User:', user.first_name, user.last_name);
@@ -24,7 +22,33 @@ const App: React.FC = () => {
 
     // Mengatur tombol utama Telegram
     TelegramWebApps.MainButton.setText('KIRIM DATA').show().onClick(() => {
-      TelegramWebApps.sendData(JSON.stringify({ action: 'submit' }));
+      // Kirim data ke backend
+      fetch('https://backend-drab-omega.vercel.app/api/webapp/data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'submit',
+          initData: TelegramWebApps.initDataUnsafe,
+        }),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then((data) => {
+          console.log('Response from backend:', data);
+          // Opsional: Kirim data ke Telegram jika diperlukan
+          TelegramWebApps.sendData(JSON.stringify({ action: 'submit' }));
+          // Tampilkan notifikasi sukses
+          TelegramWebApps.showAlert('Data berhasil dikirim ke server!');
+        })
+        .catch((error) => {
+          console.error('Error sending data to backend:', error);
+          // Tampilkan notifikasi error
+          TelegramWebApps.showAlert('Gagal mengirim data. Silakan coba lagi.');
+        });
     });
   }, []);
 
